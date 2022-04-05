@@ -1,0 +1,39 @@
+﻿@page "/"
+
+@using CryptoList.ViewModel
+@using System.ComponentModel
+@using CryptoList.Components;
+@implements IDisposable;
+@inject ICoinsViewModel CoinsViewModel;
+
+<PageTitle>Cryptomunten overzicht</PageTitle>
+
+<h1 class="title max-w-4xl">Hieronder is een overzicht te zien van alle beschikbare cryptomunten, klik op het sterretje om er één als favoriet te markeren.</h1>
+
+<div class="coin-grid mt-10">
+    @foreach (var coin in CoinsViewModel.Coins)
+    {
+        <CoinCard Coin="coin"/>
+    }
+</div>
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        CoinsViewModel.PropertyChanged += async (_, _) => await InvokeAsync(StateHasChanged);
+
+        CoinsViewModel.FetchCoins(null, null);
+        CoinsViewModel.ExecuteFetchTimer();
+        await base.OnInitializedAsync(); 
+    }
+
+    async void OnPropertyChangedEventHandler(object sender, PropertyChangedEventArgs e)
+    {
+        await InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose()
+    {
+        CoinsViewModel.PropertyChanged -= OnPropertyChangedEventHandler!;
+    }
+}

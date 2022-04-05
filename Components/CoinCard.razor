@@ -1,0 +1,29 @@
+﻿@namespace CryptoList.Components
+@using CryptoList.Models
+@using System.Globalization
+
+<div class="coin-card">
+    <div class="flex items-center content-center justify-between flex-column">
+        <div class="flex mb-3">
+            <img class="mr-3 w-[25px] h-[25px]" width="25" height="25" src="@(Coin.Image)" alt="@(Coin.Name)"/>
+            <h3 class="text-xl font-bold text-gray-700">@(Coin.Name)</h3>
+        </div>
+        <div class="flex">
+            <p class="mr-6 font-bold @(PriceWentUp() ? "text-green-400" : "text-rose-300")">
+                @(PriceWentUp() ? "▲" : "▼") @(Math.Round(Coin.Price_Change_Percentage_24h, 2))&percnt;
+            </p>
+            <p class="font-bold text-gray-600">@(FormattedPrice())</p>
+        </div>
+    </div>
+</div>
+
+@code {
+
+    [Parameter]
+    public Coin Coin { get; set; } = new();
+
+    public bool PriceWentUp() => Coin.Price_Change_Percentage_24h > 0;
+
+    public string FormattedPrice() => Coin.Current_Price.ToString("C", new CultureInfo("nl-NL"));
+
+}

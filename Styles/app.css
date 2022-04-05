@@ -1,0 +1,25 @@
+@import url('https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,300;0,400;0,900;1,700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* {
+    font-family: 'Lato', sans-serif;
+}
+
+body {
+    @apply bg-slate-100;
+}
+
+.title {
+    @apply text-2xl font-bold my-4 pb-10;
+}
+
+.coin-card {
+    @apply bg-white rounded-md drop-shadow-md p-4;
+}
+
+.coin-grid {
+    @apply grid gap-7 grid-cols-4;
+}
