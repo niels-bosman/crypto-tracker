@@ -1,6 +1,7 @@
 ﻿@namespace CryptoList.Components
 @using CryptoList.Models
 @using System.Globalization
+@using HeroIcons.Blazor.Solid;
 
 <div class="coin-card">
     <div class="flex items-center content-center justify-between flex-column">
@@ -15,15 +16,24 @@
             <p class="font-bold text-gray-600">@(FormattedPrice())</p>
         </div>
     </div>
+    <StarIcon 
+        class="absolute top-3 right-3 h-7 w-7 text-gray-300 cursor-pointer"
+        @onclick="() => SelectFavorite(Coin.Id)"
+    />
 </div>
 
 @code {
 
     [Parameter]
     public Coin Coin { get; set; } = new();
+    
+    [Parameter]
+    public Action<string>? OnFavoriteClick { get; set; }
 
-    public bool PriceWentUp() => Coin.Price_Change_Percentage_24h > 0;
+    private bool PriceWentUp() => Coin.Price_Change_Percentage_24h > 0;
 
-    public string FormattedPrice() => Coin.Current_Price.ToString("C", new CultureInfo("nl-NL"));
+    private string FormattedPrice() => Coin.Current_Price.ToString("C", new CultureInfo("nl-NL"));
 
+    private void SelectFavorite(string id) => OnFavoriteClick?.Invoke(id);
+    
 }

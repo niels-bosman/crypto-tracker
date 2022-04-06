@@ -17,23 +17,22 @@ public class CoinsViewModel : ICoinsViewModel, INotifyPropertyChanged
     public event PropertyChangedEventHandler? PropertyChanged;
     private static readonly HttpClient Http = new();
     private const int TimerInterval = 3000;
-    private Timer? _timer;
     private bool _running;
     public List<Coin> Coins { get; set; } = new();
 
     /// <summary>
     /// Executes a timer to fetch all coins every 5 seconds.
     /// </summary>
-    public void ExecuteFetchTimer()
+    public async void ExecuteFetchTimer()
     {
         if (_running) return;
-        
-        _timer = new Timer();
-        _timer.Interval = TimerInterval;
-        _timer.Elapsed += FetchCoins!;
-        _timer.AutoReset = true;
-        _timer.Enabled = true;
         _running = true;
+        
+        while (true)
+        {
+            FetchCoins(null, null);
+            await Task.Delay(TimerInterval);
+        }
     }
 
     /// <summary>
