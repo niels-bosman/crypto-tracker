@@ -1,11 +1,12 @@
 ﻿@page "/"
 
 @using CryptoList.ViewModel
-@using System.ComponentModel
 @using CryptoList.Components;
+@using CryptoList.Models
+@using CryptoList.Services
+@using System.ComponentModel
 @implements IDisposable;
-@inject ICoinsViewModel CoinsViewModel;
-@inject IFavoritesViewModel FavoritesViewModel;
+@inject FavoritesViewModel FavoritesViewModel;
 
 <PageTitle>Cryptomunten overzicht</PageTitle>
 
@@ -15,22 +16,38 @@
 {
     <p>@(favorite)</p>
 }
+
 <div class="coin-grid mt-10">
-    @foreach (var coin in CoinsViewModel.Coins)
+    @foreach (var coin in Coins)
     {
-        <CoinCard Coin="coin" OnFavoriteClick="id => FavoritesViewModel.AddFavorite(id)"/>
+        <CoinCard 
+            Coin="coin" 
+            OnFavoriteClick="ToggleFavorite"
+        />
     }
 </div>
 
 @code {
+    public List<Coin> Coins = new();
     protected override async Task OnInitializedAsync()
     {
-        CoinsViewModel.PropertyChanged += async (_, _) => await InvokeAsync(StateHasChanged);
+        FetchCoinsService.UpdateEvent += async coins =>
+        {
+            await InvokeAsync(() =>
+            {
+                Coins = coins;
+                StateHasChanged();
+            });
+        };
 
-        CoinsViewModel.FetchCoins(null, null);
-        CoinsViewModel.ExecuteFetchTimer();
-        
-        await base.OnInitializedAsync(); 
+        FavoritesViewModel.PropertyChanged += OnPropertyChangedEventHandler;
+
+        await base.OnInitializedAsync();
+    }
+
+    void ToggleFavorite(string id)
+    {
+        FavoritesViewModel.ToggleFavorite(id);
     }
 
     async void OnPropertyChangedEventHandler(object sender, PropertyChangedEventArgs e)
@@ -40,6 +57,6 @@
 
     public void Dispose()
     {
-        CoinsViewModel.PropertyChanged -= OnPropertyChangedEventHandler!;
+        FavoritesViewModel.PropertyChanged -= OnPropertyChangedEventHandler!;
     }
 }
