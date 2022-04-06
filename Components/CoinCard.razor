@@ -6,34 +6,37 @@
 <div class="coin-card">
     <div class="flex items-center content-center justify-between flex-column">
         <div class="flex mb-3">
-            <img class="mr-3 w-[25px] h-[25px]" width="25" height="25" src="@(Coin?.Image)" alt="@(Coin?.Name)"/>
+            <img class="mr-3 w-[25px] h-[25px]" width="25" height="25" src="@(Coin.Image)" alt="@(Coin?.Name)"/>
             <h3 class="text-xl font-bold text-gray-700">@(Coin?.Name)</h3>
         </div>
         <div class="flex">
             <p class="mr-6 font-bold @(PriceWentUp() ? "text-green-400" : "text-rose-300")">
-                @(PriceWentUp() ? "▲" : "▼") @(Math.Round(Coin.Price_Change_Percentage_24h, 2))&percnt;
+                @(PriceWentUp() ? "▲" : "▼") @Math.Round(Coin.Price_Change_Percentage_24h, 2)%
             </p>
             <p class="font-bold text-gray-600">@(FormattedPrice())</p>
         </div>
     </div>
     <StarIcon 
-        class="absolute top-3 right-3 h-7 w-7 text-gray-300 cursor-pointer"
-        @onclick="() => SelectFavorite(Coin?.Id)"
+        class="@($"absolute top-3 right-3 h-7 w-7 cursor-pointer transition-all {GetIconColor()}")"
+        @onclick="() => SelectFavorite(Coin.Id)"
     />
 </div>
 
 @code {
 
-    [Parameter]
-    public Coin Coin { get; set; } = new();
+    [Parameter] public List<string?> Favorites { get; set; } = new();
     
-    [Parameter]
-    public Action<string?>? OnFavoriteClick { get; set; }
+    [Parameter] public Coin Coin { get; set; } = new();
+    
+    [Parameter] public Action<string?>? OnFavoriteClick { get; set; }
 
     private bool PriceWentUp() => Coin.Price_Change_Percentage_24h > 0;
 
     private string FormattedPrice() => Coin.Current_Price.ToString("C", new CultureInfo("nl-NL"));
 
     private void SelectFavorite(string? id) => OnFavoriteClick?.Invoke(id);
-    
+
+    private bool IsFavorite() => Favorites.Contains(Coin.Id);
+
+    private string GetIconColor() => IsFavorite() ? "text-yellow-600" : "text-gray-300";
 }

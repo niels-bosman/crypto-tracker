@@ -8,39 +8,39 @@
 @implements IDisposable;
 @inject FavoritesViewModel FavoritesViewModel;
 
-<PageTitle>Cryptomunten overzicht</PageTitle>
+<PageTitle>Coin overview</PageTitle>
 
-<h1 class="title max-w-4xl">Hieronder is een overzicht te zien van alle beschikbare cryptomunten, klik op het sterretje om er één als favoriet te markeren.</h1>
+<h1 class="title">
+    Overview
+</h1>
 
-@foreach (var favorite in FavoritesViewModel.FavoriteCoins)
-{
-    <p>@(favorite)</p>
-}
+<p class="text-lg">
+    Here you can find an overview of all available cryptocurrencies, star a coin to save it to your favorite coins.
+</p>
 
 <div class="coin-grid mt-10">
-    @foreach (var coin in Coins)
+    @foreach (var coin in _coins)
     {
         <CoinCard 
             Coin="coin" 
             OnFavoriteClick="ToggleFavorite"
+            Favorites="FavoritesViewModel.FavoriteCoins"
         />
     }
 </div>
 
 @code {
-    public List<Coin> Coins = new();
+    private List<Coin> _coins = new();
+    
     protected override async Task OnInitializedAsync()
     {
-        FetchCoinsService.UpdateEvent += async coins =>
+        FetchCoinsService.UpdateEvent += async coins => await InvokeAsync(() =>
         {
-            await InvokeAsync(() =>
-            {
-                Coins = coins;
-                StateHasChanged();
-            });
-        };
+            _coins = coins;
+            StateHasChanged();
+        });
 
-        FavoritesViewModel.PropertyChanged += OnPropertyChangedEventHandler;
+        FavoritesViewModel.PropertyChanged += OnPropertyChangedEventHandler!;
 
         await base.OnInitializedAsync();
     }
