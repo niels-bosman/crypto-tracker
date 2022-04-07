@@ -1,42 +1,78 @@
 ﻿@namespace CryptoList.Components
 @using CryptoList.Models
 @using System.Globalization
+@using CryptoList.DTO
+@using CryptoList.Services
+@using CryptoList.Utils
 @using HeroIcons.Blazor.Solid;
+@inject OpenAIService OpenAiService;
+@inject CoinService CoinService;
 
-<div class="coin-card">
+<div class="coin-card @(Loading ? "opacity-50 cursor-not-allowed" : "")">
     <div class="flex items-center content-center justify-between flex-column">
         <div class="flex mb-3">
-            <img class="mr-3 w-[25px] h-[25px]" width="25" height="25" src="@(Coin.Image)" alt="@(Coin?.Name)"/>
-            <h3 class="text-xl font-bold text-gray-700">@(Coin?.Name)</h3>
+            <img 
+                class="mr-3 w-[25px] h-[25px]" 
+                width="25" 
+                height="25" 
+                src="@(CoinDto.Image)" 
+                alt="@(CoinDto.Name)"
+            />
+            <h3 class="text-xl font-bold text-gray-700">@(CoinDto?.Name)</h3>
         </div>
         <div class="flex">
-            <p class="mr-6 font-bold @(PriceWentUp() ? "text-green-400" : "text-rose-300")">
-                @(PriceWentUp() ? "▲" : "▼") @Math.Round(Coin.Price_Change_Percentage_24h, 2)%
+            <p class="mr-6 font-bold @(CoinDto.PriceWentUp() ? "text-green-400" : "text-rose-300")">
+                @(CoinDto.PriceWentUp() ? "▲" : "▼") @Math.Round(CoinDto.Price_Change_Percentage_24h, 2)%
             </p>
-            <p class="font-bold text-gray-600">@(FormattedPrice())</p>
+            <p class="font-bold text-gray-600">@(new Price(CoinDto.Current_Price).GetPretty())</p>
         </div>
     </div>
+    @if (Summary != null)
+    {
+        <p class="p-1 mt-4">@(Summary)</p>
+    }
+    else
+    {
+        <InformationCircleIcon 
+            class="absolute top-3 left-3 h-5 w-5 cursor-pointer"
+            @onclick="FetchSummary"
+        />
+    }
+    
     <StarIcon 
+        title="Click here to get a summary of the coin."
         class="@($"absolute top-3 right-3 h-7 w-7 cursor-pointer transition-all {GetIconColor()}")"
-        @onclick="() => SelectFavorite(Coin.Id)"
+        @onclick="() => SelectFavorite(CoinDto.Id)"
     />
 </div>
 
 @code {
-
+    
     [Parameter] public List<string?> Favorites { get; set; } = new();
     
-    [Parameter] public Coin Coin { get; set; } = new();
+    [Parameter] public CoinDTO CoinDto { get; set; } = new();
     
     [Parameter] public Action<string?>? OnFavoriteClick { get; set; }
+    
+    private string? Summary { get; set; } = null;
 
-    private bool PriceWentUp() => Coin.Price_Change_Percentage_24h > 0;
-
-    private string FormattedPrice() => Coin.Current_Price.ToString("C", new CultureInfo("nl-NL"));
+    private bool Loading { get; set; } = false;
 
     private void SelectFavorite(string? id) => OnFavoriteClick?.Invoke(id);
 
-    private bool IsFavorite() => Favorites.Contains(Coin.Id);
+    private bool IsFavorite() => Favorites.Contains(CoinDto.Id);
 
     private string GetIconColor() => IsFavorite() ? "text-yellow-600" : "text-gray-300";
+
+    private async void FetchSummary()
+    {
+        if (Summary != null) return;
+        
+        Loading = true;
+        StateHasChanged();
+        var description = await CoinService.FetchCoinDetails(CoinDto.Id);
+        Summary = await OpenAIService.SummarizeText(new OpenAISummarizeDTO(description.Description.En));
+        Loading = false;
+        StateHasChanged();
+    }
 }

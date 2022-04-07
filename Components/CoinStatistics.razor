@@ -1,0 +1,105 @@
+﻿@using CryptoList.Models
+@using System.Globalization
+@using CryptoList.Utils
+
+<div class="relative overflow-x-auto shadow-md sm:rounded-lg">
+    <div class="p-4 bg-slate-200">
+        <label for="table-search" class="sr-only">Search</label>
+        <div class="relative mt-1">
+            <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                <svg
+                    class="w-5 h-5 text-gray-500"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                    xmlns="http://www.w3.org/2000/svg"
+                >
+                    <path 
+                        fill-rule="evenodd" 
+                        d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" 
+                        clip-rule="evenodd"
+                    />
+                </svg>
+            </div>
+            <input 
+                type="text" 
+                id="table-search" 
+                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-80 pl-10 p-2.5"
+                placeholder="Search for your crypto"
+                @bind="SearchFilter"
+                @bind:event="oninput"
+            >
+        </div>
+    </div>
+    <table class="w-full text-sm text-left text-gray-500">
+        <thead class="text-xs text-gray-700 uppercase bg-gray-50">
+        <tr>
+            <th scope="col" class="px-6 py-3"></th>
+            <th scope="col" class="px-6 py-3 cursor-pointer" @onclick="@(() => SetOrder("name"))">
+                Name @(Order == "name" ? "▼" : "")
+            </th>
+            <th scope="col" class="px-6 py-3 cursor-pointer" @onclick="@(() => SetOrder("ticker"))">
+                Ticker symbol @(Order == "ticker" ? "▼" : "")
+            </th>
+            <th scope="col" class="px-6 py-3 cursor-pointer" @onclick="@(() => SetOrder("current_price"))">
+                Current price @(Order == "current_price" ? "▼" : "")
+            </th>
+            <th scope="col" class="px-6 py-3 cursor-pointer" @onclick="@(() => SetOrder("market_cap"))">
+                Market cap @(Order is "market_cap" or null ? "▼" : "")
+            </th>
+            <th scope="col" class="px-6 py-3 cursor-pointer" @onclick="@(() => SetOrder("price_change"))">
+                Price Change (24hr) @(Order is "price_change" ? "▼" : "")
+            </th>
+        </tr>
+        </thead>
+        <tbody>
+        @foreach (var coin in GetCoins())
+            {
+                <tr class="border-b bg-white hover:bg-gray-200">
+                    <td class="px-6 py-4">
+                        <img class="w-7 h-7" src="@(coin.Image)" alt="@(coin.Name)">
+                    </td>
+                    <td class="px-6 py-4">@(coin.Name)</td>
+                    <td class="px-6 py-4">@(coin.Symbol.ToUpper())</td>
+                    <td class="px-6 py-4">@(new Price(coin.Current_Price).GetPretty())</td>
+                    <td class="px-6 py-4">@(new Price(coin.Market_Cap).GetPretty())</td>
+                    <td class="px-6 py-4 font-bold @(coin.PriceWentUp() ? "text-green-400" : "text-rose-300")">
+                        @(Math.Round(coin.Price_Change_Percentage_24h, 2))%
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+@code {
+    [Parameter]
+    public List<CoinDTO> Coins { get; set; } = new();
+
+    private string SearchFilter { get; set; } = "";
+    
+    private string? Order { get; set; }
+
+    private void SetOrder(string order)
+    {
+        Order = order;
+        StateHasChanged();
+    }
+    
+    private List<CoinDTO> GetCoins()
+    {
+        var coins = Coins
+            .Where(coin => SearchFilter == "" || coin.Name.ToLower().Contains(SearchFilter.ToLower()))
+            .ToList();
+
+        var orderedCoins = Order switch
+        {
+            "name" => coins.OrderBy(coin => coin.Name),
+            "symbol" => coins.OrderBy(coin => coin.Symbol),
+            "current_price" => coins.OrderByDescending(coin => coin.Current_Price),
+            "price_change" => coins.OrderByDescending(coin => coin.Price_Change_Percentage_24h),
+            _ => coins.OrderByDescending(coin => coin.Market_Cap),
+        };
+
+        return orderedCoins.ToList();
+    }
+}

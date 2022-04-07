@@ -2,7 +2,7 @@
 
 namespace CryptoList.Services;
 
-public class FetchCoinsService : BackgroundService
+public class FetchCoinsBackgroundService : BackgroundService
 {
     private const string ApiBase = "https://api.coingecko.com/api/";
     private const string ApiVersion = "3";
@@ -14,7 +14,7 @@ public class FetchCoinsService : BackgroundService
     private const string PriceChangePercentage = "1h%2C24h%2C7d";
 
     private static readonly HttpClient Http = new();
-    public static event Func<List<Coin>, Task>? UpdateEvent;
+    public static event Func<List<CoinDTO>, Task>? UpdateEvent;
 
     /// <summary>
     /// Excecute the task every n seconds.
@@ -34,10 +34,10 @@ public class FetchCoinsService : BackgroundService
     /// Fetch coins from CoinGecko API.
     /// </summary>
     /// <returns></returns>
-    private static async Task<List<Coin>> FetchCoins()
+    private static async Task<List<CoinDTO>> FetchCoins()
     {
         const string endpoint = $"{ApiUri}/coins/markets?vs_currency={Currency}&order={Order}&per_page={PerPage}&price_change_percentage={PriceChangePercentage}";
-        var response = await Http.GetFromJsonAsync<List<Coin>>(endpoint);
-        return response ?? new List<Coin>();
+        var response = await Http.GetFromJsonAsync<List<CoinDTO>>(endpoint);
+        return response ?? new List<CoinDTO>();
     }
 }

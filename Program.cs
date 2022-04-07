@@ -7,7 +7,9 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
 builder.Services.AddSingleton<FavoritesViewModel>();
-builder.Services.AddHostedService<FetchCoinsService>();
+builder.Services.AddSingleton<OpenAIService>();
+builder.Services.AddSingleton<CoinService>();
+builder.Services.AddHostedService<FetchCoinsBackgroundService>();
 
 var app = builder.Build();
 

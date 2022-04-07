@@ -19,35 +19,30 @@
 </p>
 
 <div class="coin-grid mt-10">
-    @foreach (var coin in _coins)
+    @foreach (var coin in Coins)
     {
         <CoinCard 
-            Coin="coin" 
-            OnFavoriteClick="ToggleFavorite"
+            CoinDto="coin" 
+            OnFavoriteClick="FavoritesViewModel.ToggleFavorite"
             Favorites="FavoritesViewModel.FavoriteCoins"
         />
     }
 </div>
 
 @code {
-    private List<Coin> _coins = new();
+    public List<CoinDTO> Coins = new();
     
     protected override async Task OnInitializedAsync()
     {
-        FetchCoinsService.UpdateEvent += async coins => await InvokeAsync(() =>
+        FetchCoinsBackgroundService.UpdateEvent += async coins => await InvokeAsync(() =>
         {
-            _coins = coins;
+            Coins = coins;
             StateHasChanged();
         });
 
         FavoritesViewModel.PropertyChanged += OnPropertyChangedEventHandler!;
 
         await base.OnInitializedAsync();
-    }
-
-    void ToggleFavorite(string id)
-    {
-        FavoritesViewModel.ToggleFavorite(id);
     }
 
     async void OnPropertyChangedEventHandler(object sender, PropertyChangedEventArgs e)

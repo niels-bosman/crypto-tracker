@@ -1,9 +1,54 @@
 ﻿@page "/statistics"
 
+@using CryptoList.Services
+@using CryptoList.ViewModel
+@using CryptoList.Models
+@using CryptoList.Components
+@using System.ComponentModel
+@inject FavoritesViewModel FavoritesViewModel;
+
 <PageTitle>Statistics</PageTitle>
 
 <h1 class="title">Statistics</h1>
 
-<p class="text-lg">
+<p class="text-lg mb-10">
     Here you can view your statistics for your favorite coins. You can compare them and search for specific coins.
 </p>
+
+@if (Coins.Count > 0)
+{
+    <CoinStatistics Coins="@(Coins)"/>
+}
+else
+{
+    <p class="text-lg font-bold text-gray-600">You haven't added any favorite coins yet, go to the <a href="/">overview</a> page to add one.</p>
+}
+
+@code {
+    public List<CoinDTO> Coins = new();
+    
+    protected override async Task OnInitializedAsync()
+    {
+        FetchCoinsBackgroundService.UpdateEvent += async coins => await InvokeAsync(() =>
+        {
+            Coins = coins
+                .Where(coin => FavoritesViewModel.FavoriteCoins.Contains(coin.Id))
+                .ToList();
+            StateHasChanged();
+        });
+
+        FavoritesViewModel.PropertyChanged += OnPropertyChangedEventHandler!;
+
+        await base.OnInitializedAsync();
+    }
+
+    async void OnPropertyChangedEventHandler(object sender, PropertyChangedEventArgs e)
+    {
+        await InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose()
+    {
+        FavoritesViewModel.PropertyChanged -= OnPropertyChangedEventHandler!;
+    }
+}
