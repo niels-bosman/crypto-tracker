@@ -1,6 +1,5 @@
 ﻿@namespace CryptoList.Components
 @using CryptoList.Models
-@using System.Globalization
 @using CryptoList.DTO
 @using CryptoList.Services
 @using CryptoList.Utils
@@ -54,9 +53,9 @@
     
     [Parameter] public Action<string?>? OnFavoriteClick { get; set; }
     
-    private string? Summary { get; set; } = null;
+    private string? Summary { get; set; }
 
-    private bool Loading { get; set; } = false;
+    private bool Loading { get; set; }
 
     private void SelectFavorite(string? id) => OnFavoriteClick?.Invoke(id);
 
